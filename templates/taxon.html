@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ t.scientific_name }} — Catálogo dos Protistas{% endblock %}
+{% block content %}
+  <div class="crumbs">
+    {% for p in path %}
+      <a href="{{ url_for('clade', clade_id=p.id) if p.id != 'eukaryota' else url_for('index') }}">{{ p.name }}</a>
+      {% if not loop.last %} › {% endif %}
+    {% endfor %}
+  </div>
+
+  <h1><em class="sci">{{ t.scientific_name }}</em>
+    {% if t.scientific_name_authorship %}<span style="font-size:1rem;color:var(--muted)">{{ t.scientific_name_authorship }}</span>{% endif %}
+  </h1>
+  <p class="lead">
+    {{ t.supergroup or '' }}{% if t.taxon_rank %} · {{ t.taxon_rank }}{% endif %}
+    {% if t.taxonomic_status %} · {{ t.taxonomic_status }}{% endif %}
+  </p>
+
+  <div class="card" style="margin-top:1rem">
+    <table>
+      <tbody>
+        {% macro row(k, v) %}{% if v %}<tr><th style="width:240px">{{ k }}</th><td>{{ v }}</td></tr>{% endif %}{% endmacro %}
+        {{ row('taxonID', t.taxon_id) }}
+        {{ row('Supergrupo', t.supergroup) }}
+        {{ row('higherClassification', t.higher_classification) }}
+        {{ row('Filo', t.phylum) }}
+        {{ row('Classe', t.class_) }}
+        {{ row('Ordem', t.order) }}
+        {{ row('Família', t.family) }}
+        {{ row('Gênero', t.genus) }}
+        {{ row('Categoria', t.taxon_rank) }}
+        {{ row('Status', t.taxonomic_status) }}
+        {{ row('Habitat', t.habitat) }}
+        {{ row('Observações', t.occurrence_remarks) }}
+        {{ row('Dataset', t.dataset_name) }}
+        {{ row('Referências', t.references) }}
+      </tbody>
+    </table>
+  </div>
+
+  <p style="margin-top:1.2rem">
+    {% if node %}<a class="btn btn-primary btn-sm" href="{{ url_for('clade', clade_id=node.id) }}">Ver clado {{ node.name }} na filogenia →</a>{% endif %}
+    {% if current_user.is_authenticated %}<a class="btn btn-outline btn-sm" href="{{ url_for('workspace_edit', taxon_id=t.id) }}">✎ Editar</a>{% endif %}
+  </p>
+{% endblock %}

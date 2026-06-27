@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ t.scientific_name }} — Workspace{% endblock %}
+{% block content %}
+  <div class="crumbs"><a href="{{ url_for('workspace_dashboard') }}">Workspace</a> ›
+    <a href="{{ url_for('taxon', taxon_id=t.id) }}">{{ t.scientific_name }}</a> › Editar</div>
+  <h1>Editar <em class="sci">{{ t.scientific_name }}</em></h1>
+
+  {% set labels = {
+    'supergroup':'Supergrupo','clade_id':'Clado (id)','higher_classification':'Classificação superior',
+    'phylum':'Filo','class_':'Classe','order':'Ordem','family':'Família','genus':'Gênero',
+    'specific_epithet':'Epíteto específico','infraspecific_epithet':'Epíteto infraespecífico',
+    'scientific_name':'Nome científico','scientific_name_authorship':'Autoria',
+    'taxon_rank':'Categoria','taxonomic_status':'Status','accepted_name_usage':'Nome aceito',
+    'vernacular_name':'Nome vernacular','habitat':'Habitat','occurrence_remarks':'Observações',
+    'dataset_name':'Dataset','references':'Referências'} %}
+
+  <form method="post" class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">
+      {% for f in fields %}
+        <div class="form-group">
+          <label for="{{ f }}">{{ labels.get(f, f) }}</label>
+          {% if f in ('occurrence_remarks','references','higher_classification') %}
+            <textarea id="{{ f }}" name="{{ f }}">{{ getattr(t, f) or '' }}</textarea>
+          {% else %}
+            <input type="text" id="{{ f }}" name="{{ f }}" value="{{ getattr(t, f) or '' }}">
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="form-group"><label for="note">Nota da edição (opcional)</label>
+      <input type="text" id="note" name="note" placeholder="motivo da alteração"></div>
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a class="btn btn-outline" href="{{ url_for('taxon', taxon_id=t.id) }}">Cancelar</a>
+  </form>
+
+  <h2>Histórico</h2>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table><thead><tr><th>Quando</th><th>Usuário</th><th>Alterações</th><th>Nota</th></tr></thead>
+      <tbody>
+      {% for log in logs %}
+        <tr><td style="white-space:nowrap">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ log.user.username if log.user else '—' }}</td>
+          <td style="font-size:.8rem">
+            {% for field, c in (log.changes or {}).items() %}<div><strong>{{ field }}</strong>:
+              <span style="color:var(--danger)">{{ c.old or '∅' }}</span> →
+              <span style="color:#0e4a3a">{{ c.new or '∅' }}</span></div>{% endfor %}</td>
+          <td style="font-size:.8rem;color:var(--muted)">{{ log.note or '' }}</td></tr>
+      {% else %}
+        <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1.2rem">Sem histórico.</td></tr>
+      {% endfor %}
+      </tbody></table>
+  </div>
+{% endblock %}

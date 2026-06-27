@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}A Nova Árvore dos Eucariontes — Catálogo dos Protistas{% endblock %}
+{% block content %}
+  <h1>A Nova Árvore dos Eucariontes</h1>
+  <p class="lead">
+    Diversidade dos protistas (eucariontes basais) organizada segundo o consenso
+    filogenômico de Burki, Roger, Brown &amp; Simpson (2020), <em>Figura 1</em>.
+    Clique em um supergrupo ou linhagem profunda para abrir o esquema de
+    relações internas e navegar até os grupos subordinados.
+  </p>
+
+  <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin:1rem 0 .2rem">
+    {% if current_user.is_authenticated %}
+      <a class="btn btn-primary" href="{{ url_for('workspace_dashboard') }}">🔬 Workspace</a>
+    {% else %}
+      <a class="btn btn-primary" href="{{ url_for('workspace_login') }}">🔬 Acesso de especialistas</a>
+    {% endif %}
+    <a class="btn btn-outline" href="/static/Manual_Protistas.pdf" target="_blank" rel="noopener">📄 Manual do sistema</a>
+    <a class="btn btn-outline" href="{{ url_for('search') }}">🔎 Busca de táxons</a>
+  </div>
+
+  <div class="card" style="margin-top:.6rem">
+    <div class="clado-wrap">{{ svg|safe }}</div>
+  </div>
+
+  <h2>Supergrupos e linhagens profundas</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem">
+    {% for n in tree.children %}
+      <a class="card" href="{{ url_for('clade', clade_id=n.id) }}"
+         style="text-decoration:none;color:inherit;padding:1rem">
+        <strong style="color:var(--primary)">{{ n.name }}</strong>
+        <span class="badge {% if n.excavate %}badge-excavate{% elif n.rank=='supergroup' %}badge-super{% else %}badge-default{% endif %}"
+              style="float:right">{{ n.rank }}</span>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:.5rem;line-height:1.4">
+          {{ n.note[:140] }}{% if n.note|length > 140 %}…{% endif %}</p>
+      </a>
+    {% endfor %}
+  </div>
+{% endblock %}

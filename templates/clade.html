@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ node.name }} — Catálogo dos Protistas{% endblock %}
+{% block content %}
+  <div class="crumbs">
+    {% for p in path %}
+      {% if not loop.last %}<a href="{{ url_for('clade', clade_id=p.id) if p.id != 'eukaryota' else url_for('index') }}">{{ p.name }}</a> ›
+      {% else %}<strong>{{ p.name }}</strong>{% endif %}
+    {% endfor %}
+  </div>
+
+  <h1>{{ node.name }}
+    <span class="badge {% if node.excavate %}badge-excavate{% elif node.rank=='supergroup' %}badge-super{% else %}badge-default{% endif %}">{{ node.rank }}</span>
+  </h1>
+  <p class="lead">{{ node.note }}</p>
+  {% if node.excavate %}
+    <p class="lead" style="color:var(--secondary)"><em>Membro da assembleia parafilética
+    informal 'Excavates' (linha tracejada na Fig 1).</em></p>
+  {% endif %}
+
+  {% if node.children %}
+    <h2>Relações internas</h2>
+    <p class="lead">Clique em um grupo subordinado para descer na hierarquia
+      (ou abrir a busca, nos grupos terminais).</p>
+    <div class="card" style="margin-top:.6rem"><div class="clado-wrap">{{ svg|safe }}</div></div>
+
+    <h2>Grupos subordinados</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.75rem">
+      {% for c in children %}
+        <a class="card" href="{{ url_for('clade', clade_id=c.id) }}"
+           style="text-decoration:none;color:inherit;padding:.9rem">
+          <strong style="color:var(--primary)">{{ c.name }}</strong>
+          <span class="badge badge-default" style="float:right">{{ c.rank }}</span>
+          <p style="font-size:.8rem;color:var(--muted);margin-top:.45rem;line-height:1.4">
+            {{ c.note[:120] }}{% if c.note and c.note|length > 120 %}…{% endif %}</p>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <h2>Grupo terminal</h2>
+    <p class="lead">
+      {% if n_taxa %}{{ n_taxa }} registro(s) representativo(s) neste grupo.{% endif %}
+    </p>
+    <a class="btn btn-primary" href="{{ url_for('search', clade=node.id) }}">
+      Ver táxons de {{ node.name }} →</a>
+    {% if node.genera %}
+      <p class="lead" style="margin-top:.8rem">Gêneros representativos:
+        {% for g in node.genera %}<em class="sci">{{ g }}</em>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+    {% endif %}
+  {% endif %}
+
+  <p style="margin-top:1.5rem">
+    <a class="btn btn-outline btn-sm" href="{{ url_for('search', clade=node.id) }}">Buscar em {{ node.name }}</a>
+    {% if parent %}<a class="btn btn-outline btn-sm"
+       href="{{ url_for('clade', clade_id=parent.id) if parent.id != 'eukaryota' else url_for('index') }}">↑ {{ parent.name }}</a>{% endif %}
+  </p>
+{% endblock %}

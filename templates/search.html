@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Busca — Catálogo dos Protistas{% endblock %}
+{% block content %}
+  <h1>Busca de táxons</h1>
+  {% if clade_node %}
+    <p class="lead">Filtrando pelo clado <strong>{{ clade_node.name }}</strong>
+      (<a href="{{ url_for('clade', clade_id=clade_node.id) }}">ver na filogenia</a>).</p>
+  {% endif %}
+
+  <form method="get" action="{{ url_for('search') }}" class="card"
+        style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.8rem;align-items:end;margin-bottom:1.1rem">
+    <div><label>Texto</label>
+      <input type="search" name="q" value="{{ args.get('q','') }}" placeholder="nome científico, gênero…"></div>
+    <div><label>Supergrupo</label>
+      <select name="supergroup"><option value="">— todos —</option>
+        {% for s in supergroups %}<option value="{{ s }}" {{ 'selected' if args.get('supergroup')==s }}>{{ s }}</option>{% endfor %}
+      </select></div>
+    <div><label>Gênero</label><input type="text" name="genus" value="{{ args.get('genus','') }}"></div>
+    {% if args.get('clade') %}<input type="hidden" name="clade" value="{{ args.get('clade') }}">{% endif %}
+    <div><button class="btn btn-primary" type="submit">Buscar</button>
+      <a class="btn btn-outline" href="{{ url_for('search') }}">Limpar</a></div>
+  </form>
+
+  <p class="lead">{{ pagination.total }} registro(s).
+    <a href="{{ url_for('download', **args) }}">⬇ CSV</a> ·
+    <a href="{{ url_for('api_dwca', **args) }}">⬇ DwC-A</a></p>
+
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table>
+      <thead><tr><th>Nome científico</th><th>Supergrupo</th><th>Classificação</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for t in taxa %}
+          <tr>
+            <td><a href="{{ url_for('taxon', taxon_id=t.id) }}"><em class="sci">{{ t.scientific_name }}</em></a></td>
+            <td>{{ t.supergroup or '—' }}</td>
+            <td style="font-size:.8rem;color:var(--muted)">{{ t.higher_classification or '—' }}</td>
+            <td>{{ t.taxonomic_status or '—' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1.5rem">Nenhum registro.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}<a href="{{ url_for('search', page=pagination.prev_num, **args) }}">‹</a>{% endif %}
+    <span class="current">{{ pagination.page }} / {{ pagination.pages }}</span>
+    {% if pagination.has_next %}<a href="{{ url_for('search', page=pagination.next_num, **args) }}">›</a>{% endif %}
+  </div>
+  {% endif %}
+{% endblock %}

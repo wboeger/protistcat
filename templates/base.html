@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Catálogo dos Protistas{% endblock %}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* microbial / aquatic palette */
+      --primary:       #185a6d;   /* deep teal */
+      --primary-light: #2f93a8;   /* plankton cyan */
+      --secondary:     #6b4f9e;   /* protist violet */
+      --accent:        #d98c3f;   /* diatom amber */
+      --danger:        #b03a4e;
+      --bg:            #eef4f5;
+      --bg-subtle:     #e0ebed;
+      --card:          #ffffff;
+      --border:        #cddde0;
+      --text:          #15282d;
+      --muted:         #5d7176;
+      --radius:        12px;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      background-image:
+        radial-gradient(ellipse at 15% 0%, rgba(47,147,168,.08) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 100%, rgba(107,79,158,.07) 0%, transparent 55%);
+    }
+    nav {
+      background: linear-gradient(135deg, #103f4d 0%, #185a6d 60%, #2f93a8 130%);
+      color: white; padding: 0 1.5rem; display: flex; align-items: center;
+      gap: 1.5rem; height: 54px; box-shadow: 0 3px 10px rgba(10,40,50,.35);
+      flex-shrink: 0; border-bottom: 2px solid rgba(47,147,168,.4);
+    }
+    .nav-brand {
+      font-weight: 700; font-size: 1.05rem; text-decoration: none;
+      color: #e3f3f6; display: flex; align-items: center; gap: .5rem; white-space: nowrap;
+    }
+    .nav-links { display: flex; gap: .25rem; align-items: center; flex: 1; }
+    .nav-links a {
+      color: rgba(227,243,246,.82); text-decoration: none; padding: .35rem .8rem;
+      border-radius: 8px; font-size: .87rem; transition: background .15s, color .15s;
+    }
+    .nav-links a:hover, .nav-links a.active { background: rgba(255,255,255,.15); color: #e3f3f6; }
+    main { flex: 1; padding: 1.75rem 1.5rem; max-width: 1300px; width: 100%; margin: 0 auto; }
+    h1 { font-size: 1.5rem; color: var(--primary); margin-bottom: .35rem; }
+    h2 { font-size: 1.1rem; color: var(--primary); margin: 1.2rem 0 .6rem; }
+    p.lead { color: var(--muted); font-size: .95rem; max-width: 70ch; line-height: 1.5; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.5rem; box-shadow: 0 2px 8px rgba(20,40,45,.07);
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1.1rem;
+      border-radius: 8px; font-size: .875rem; font-weight: 500; cursor: pointer;
+      border: none; text-decoration: none; transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-primary { background: var(--primary); color: #e3f3f6; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+    .btn-sm { padding: .3rem .75rem; font-size: .8rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    th { background: var(--primary); color: #e3f3f6; padding: .6rem .9rem; text-align: left;
+         font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; }
+    td { padding: .55rem .9rem; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: #eef6f7; }
+    em.sci { font-style: italic; }
+    label { display: block; font-size: .76rem; font-weight: 600; color: var(--muted);
+            margin-bottom: .3rem; text-transform: uppercase; letter-spacing: .06em; }
+    input[type=text], input[type=search], select {
+      width: 100%; padding: .55rem .85rem; border: 1.5px solid var(--border);
+      border-radius: 9px; background: #f8fbfb; color: var(--text); font-size: .875rem;
+    }
+    textarea { width: 100%; padding: .55rem .85rem; border: 1.5px solid var(--border);
+      border-radius: 9px; background: #f8fbfb; color: var(--text); font-size: .875rem;
+      font-family: inherit; resize: vertical; min-height: 70px; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(47,147,168,.18); }
+    .form-group { margin-bottom: 1rem; }
+    .badge { display: inline-block; padding: .15rem .55rem; border-radius: 20px;
+      font-size: .72rem; font-weight: 600; }
+    .badge-super { background: #d7eef2; color: #103f4d; }
+    .badge-excavate { background: #ece3f6; color: #43306b; }
+    .badge-default { background: #e4edee; color: #3a4c50; }
+    .crumbs { font-size: .82rem; color: var(--muted); margin-bottom: .9rem; }
+    .crumbs a { color: var(--primary-light); text-decoration: none; }
+    .crumbs a:hover { text-decoration: underline; }
+    .pagination { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .pagination a, .pagination span { padding: .35rem .7rem; border-radius: 8px;
+      font-size: .82rem; text-decoration: none; border: 1px solid var(--border);
+      color: var(--text); background: var(--card); }
+    .pagination a:hover, .pagination .current { background: var(--primary);
+      color: #e3f3f6; border-color: var(--primary); }
+    footer { text-align: center; font-size: .75rem; color: var(--muted);
+      padding: 1.25rem; border-top: 1px solid var(--border); background: var(--bg-subtle); }
+    footer a { color: var(--muted); }
+
+    /* cladogram */
+    .clado-wrap { overflow-x: auto; padding: .5rem 0; }
+    svg.cladogram { max-width: 100%; height: auto; font-family: inherit; }
+    svg.cladogram .branch { stroke: #9bb6bb; stroke-width: 1.6; fill: none; }
+    svg.cladogram .node-dot { fill: var(--primary-light); }
+    svg.cladogram .node-name { font-size: 13px; fill: var(--text); font-weight: 600; }
+    svg.cladogram .node-rank { font-size: 9.5px; fill: var(--muted);
+      text-transform: uppercase; letter-spacing: .05em; }
+    svg.cladogram .node-super .node-name { fill: var(--primary); }
+    svg.cladogram .node-super .node-dot { fill: var(--primary); r: 5; }
+    svg.cladogram .node-excavate .node-name { fill: var(--secondary); }
+    svg.cladogram .node-link { cursor: pointer; }
+    svg.cladogram .node-link:hover .node-name { fill: var(--accent);
+      text-decoration: underline; }
+    svg.cladogram .node-link:hover .node-dot { fill: var(--accent); }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="/">🦠 Catálogo dos Protistas</a>
+  <div class="nav-links">
+    <a href="/" {% if request.endpoint in ('index','clade') %}class="active"{% endif %}>Filogenia</a>
+    <a href="/busca" {% if request.endpoint in ('search','taxon') %}class="active"{% endif %}>Busca</a>
+    <a href="/api">API</a>
+    <a href="/api/dwca">DwC-A</a>
+    <a href="/static/Manual_Protistas.pdf" target="_blank" rel="noopener">📄 Manual</a>
+    {% if current_user.is_authenticated %}
+      <a href="/workspace/" {% if 'workspace' in (request.endpoint or '') %}class="active"{% endif %}>Workspace</a>
+      {% if current_user.is_admin %}
+        <a href="/admin/ingest">Ingestão</a>
+        <a href="/admin/users">Usuários</a>
+      {% endif %}
+    {% endif %}
+  </div>
+  <div style="font-size:.8rem;color:rgba(227,243,246,.75);display:flex;gap:.75rem;align-items:center">
+    {% if current_user.is_authenticated %}
+      <span>{{ current_user.username }}</span>
+      <a href="/workspace/logout" style="color:rgba(227,243,246,.75);text-decoration:none">Sair</a>
+    {% else %}
+      <a href="/workspace/login" style="color:rgba(227,243,246,.75);text-decoration:none">🔬 Acesso de especialistas ›</a>
+    {% endif %}
+  </div>
+</nav>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul style="list-style:none;margin-bottom:1rem">
+      {% for category, msg in messages %}
+      <li class="flash-msg flash-{{ category }}"
+          style="padding:.65rem 1rem;border-radius:10px;font-size:.875rem;margin-bottom:.5rem;border-left:4px solid;
+          {% if category=='success' %}background:#e6f5ee;border-color:#2f93a8;color:#0e4a3a
+          {% elif category=='error' %}background:#fbecef;border-color:var(--danger);color:#7a1f2a
+          {% else %}background:#eef6f7;border-color:var(--accent);color:#5a3510{% endif %}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>
+  Catálogo dos Protistas (eucariontes basais) · backbone após
+  <a href="https://doi.org/10.1016/j.tree.2019.08.008" target="_blank" rel="noopener">Burki et al. 2020</a>
+  &amp; Adl et al. 2019 · Darwin Core Archive
+</footer>
+</body>
+</html>

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+instance/
+protista.db
+*.log
+.DS_Store
+.venv/
+venv/
+Burkietal2020PIIS0169534719302575.pdf

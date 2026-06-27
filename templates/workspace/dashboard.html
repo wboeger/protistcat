@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Workspace — Catálogo dos Protistas{% endblock %}
+{% block content %}
+  <h1>Workspace</h1>
+  <p class="lead">{{ total_taxa }} registros no catálogo. Use a
+    <a href="{{ url_for('search') }}">busca</a> para localizar um táxon e editá-lo.</p>
+
+  <h2>Atividade recente</h2>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table>
+      <thead><tr><th>Quando</th><th>Usuário</th><th>Táxon</th><th>Campos</th><th>Nota</th></tr></thead>
+      <tbody>
+        {% for log in recent_logs %}
+          <tr>
+            <td style="white-space:nowrap">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.user.username if log.user else '—' }}</td>
+            <td>{% if log.taxon %}<a href="{{ url_for('workspace_edit', taxon_id=log.taxon.id) }}">
+                <em class="sci">{{ log.taxon.scientific_name }}</em></a>{% else %}#{{ log.taxon_id }}{% endif %}</td>
+            <td style="font-size:.8rem">{{ (log.changes or {}).keys()|join(', ') }}</td>
+            <td style="font-size:.8rem;color:var(--muted)">{{ log.note or '' }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.4rem">Sem atividade.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

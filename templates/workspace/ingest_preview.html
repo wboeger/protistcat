@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Pré-visualização da ingestão — Workspace{% endblock %}
+{% block content %}
+  <h1>Pré-visualização da ingestão</h1>
+  <p class="lead">
+    <span class="badge badge-super">✚ {{ n_ins }} inserções</span>
+    <span class="badge badge-default">↺ {{ n_upd }} atualizações</span>
+    <span class="badge badge-default">= {{ n_same }} inalterados (ignorados)</span>
+  </p>
+
+  <p style="margin:.6rem 0">
+    <a class="btn btn-sm {{ 'btn-primary' if not filter_action else 'btn-outline' }}"
+       href="{{ url_for('admin_ingest_preview', sid=sid, n_ins=n_ins, n_upd=n_upd, n_same=n_same) }}">Todos</a>
+    <a class="btn btn-sm {{ 'btn-primary' if filter_action=='insert' else 'btn-outline' }}"
+       href="{{ url_for('admin_ingest_preview', sid=sid, filter='insert', n_ins=n_ins, n_upd=n_upd, n_same=n_same) }}">Inserções</a>
+    <a class="btn btn-sm {{ 'btn-primary' if filter_action=='update' else 'btn-outline' }}"
+       href="{{ url_for('admin_ingest_preview', sid=sid, filter='update', n_ins=n_ins, n_upd=n_upd, n_same=n_same) }}">Atualizações</a>
+  </p>
+
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table>
+      <thead><tr><th>#</th><th>Ação</th><th>Nome científico</th><th>Alterações / dados</th><th></th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+          <tr style="{{ 'opacity:.45' if row.status=='skipped' }}">
+            <td>{{ row.row_index }}</td>
+            <td><span class="badge {{ 'badge-super' if row.action=='insert' else 'badge-default' }}">{{ row.action }}</span></td>
+            <td><em class="sci">{{ (row.edited or row.incoming).get('scientific_name','—') }}</em></td>
+            <td style="font-size:.8rem">
+              {% if row.action=='update' %}
+                {% for f, c in (row.diff or {}).items() %}<div><strong>{{ f }}</strong>:
+                  <span style="color:var(--danger)">{{ c.old or '∅' }}</span> →
+                  <span style="color:#0e4a3a">{{ c.new or '∅' }}</span></div>{% endfor %}
+              {% else %}
+                {{ (row.incoming or {}).get('supergroup','') }} · {{ (row.incoming or {}).get('taxon_rank','') }}
+              {% endif %}
+            </td>
+            <td><form method="post" action="{{ url_for('admin_ingest_skip', row_id=row.id) }}" style="margin:0">
+              <button class="btn btn-outline btn-sm">{{ 'Reincluir' if row.status=='skipped' else 'Pular' }}</button></form></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.4rem">Nada a importar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div class="pagination">
+    {% if pagination.has_prev %}<a href="{{ url_for('admin_ingest_preview', sid=sid, page=pagination.prev_num, filter=filter_action, n_ins=n_ins, n_upd=n_upd, n_same=n_same) }}">‹</a>{% endif %}
+    <span class="current">{{ pagination.page }} / {{ pagination.pages }}</span>
+    {% if pagination.has_next %}<a href="{{ url_for('admin_ingest_preview', sid=sid, page=pagination.next_num, filter=filter_action, n_ins=n_ins, n_upd=n_upd, n_same=n_same) }}">›</a>{% endif %}
+  </div>
+  {% endif %}
+
+  <div style="display:flex;gap:.6rem;margin-top:1.3rem">
+    <form method="post" action="{{ url_for('admin_ingest_confirm') }}">
+      <input type="hidden" name="sid" value="{{ sid }}">
+      <button class="btn btn-primary" onclick="return confirm('Aplicar a ingestão ao catálogo?')">Confirmar e aplicar</button>
+    </form>
+    <form method="post" action="{{ url_for('admin_ingest_cancel') }}">
+      <input type="hidden" name="sid" value="{{ sid }}">
+      <button class="btn btn-outline">Cancelar</button>
+    </form>
+  </div>
+{% endblock %}

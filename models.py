@@ -19,24 +19,73 @@ class Taxon(db.Model):
     clade_id = db.Column(db.String(100), index=True)        # phylogeny.py node id
     higher_classification = db.Column(db.Text)              # DwC higherClassification
 
-    kingdom = db.Column(db.String(100), index=True)
+    # names + parentage
+    scientific_name = db.Column(db.String(500), index=True)
+    taxon_rank = db.Column(db.String(50), index=True)
+    parent_name_usage = db.Column(db.String(500))
+    parent_name_usage_id = db.Column(db.String(255))
+
+    # full DwC rank ladder (from CTFB mv_planilha_extendida)
     phylum = db.Column(db.String(100), index=True)
+    super_class = db.Column(db.String(100))
     class_ = db.Column("class", db.String(100), index=True)
+    sub_class = db.Column(db.String(100))
+    infra_class = db.Column(db.String(100))
+    super_order = db.Column(db.String(100))
     order = db.Column(db.String(100), index=True)
+    sub_order = db.Column(db.String(100))
+    infra_order = db.Column(db.String(100))
+    super_family = db.Column(db.String(100))
     family = db.Column(db.String(100), index=True)
+    sub_family = db.Column(db.String(100))
+    tribe = db.Column(db.String(100))
+    sub_tribe = db.Column(db.String(100))
     genus = db.Column(db.String(100), index=True)
+    subgenus = db.Column(db.String(100))
     specific_epithet = db.Column(db.String(100))
     infraspecific_epithet = db.Column(db.String(100))
-    scientific_name = db.Column(db.String(500), index=True)
     scientific_name_authorship = db.Column(db.String(500))
-    taxon_rank = db.Column(db.String(50), index=True)
-    taxonomic_status = db.Column(db.String(50), index=True)
+    name_published_in_year = db.Column(db.String(20))
+
+    # nomenclatural / taxonomic status
+    taxonomic_status = db.Column(db.String(80), index=True)
     accepted_name_usage = db.Column(db.String(500))
     accepted_name_usage_id = db.Column(db.String(255))
-    vernacular_name = db.Column(db.String(500))
+    nomenclatural_status = db.Column(db.String(120))
+    modified = db.Column(db.String(60))                     # dcterms:modified (source)
+    bibliographic_citation = db.Column(db.Text)
+    bibliographic_reference = db.Column(db.Text)
 
+    # distribution / environment
+    country = db.Column(db.String(120))
+    country_code = db.Column(db.String(10))
+    establishment_means = db.Column(db.String(120), index=True)
+    endemic_brazil = db.Column(db.String(20), index=True)
+    environment = db.Column(db.String(200))
+    location_id = db.Column(db.String(255))
+    epicontinental_domain = db.Column(db.String(120))
+    marine_domain = db.Column(db.String(120))
+    life_form = db.Column(db.String(200))
     habitat = db.Column(db.String(500))
+
+    # vernacular
+    vernacular_name = db.Column(db.String(500))
+    vernacular_name_language = db.Column(db.String(60))
+    vernacular_name_locality = db.Column(db.String(255))
+
+    # hosts / symbionts (CTFB-specific)
+    animal_host_ids = db.Column(db.Text)
+    animal_host_names = db.Column(db.Text)
+    vegetal_host_names = db.Column(db.Text)
+    animal_symbiont_ids = db.Column(db.Text)
+    animal_symbiont_names = db.Column(db.Text)
+
+    # remarks / curation
     occurrence_remarks = db.Column(db.Text)
+    internal_remarks = db.Column(db.Text)
+    voucher = db.Column(db.Text)
+    controlled_bibliography = db.Column(db.Text)
+    typology = db.Column(db.String(120))
 
     dataset_name = db.Column(db.String(500))
     references = db.Column(db.Text)

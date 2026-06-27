@@ -16,14 +16,25 @@ from flask_login import (
 
 from models import db, Taxon, User, AuditLog, IngestStage
 import phylogeny as ph
+import dwc_terms
 
 
 def data_dir():
-    """Directory for the SQLite file. On Railway this is the mounted volume
-    (RAILWAY_VOLUME_MOUNT_PATH); locally it falls back to ./instance."""
-    d = os.environ.get("RAILWAY_VOLUME_MOUNT_PATH") or os.environ.get("DATA_DIR")
-    if not d:
-        d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "instance")
+    """Directory for the SQLite file. Prefers the Railway volume mount, then an
+    explicit DATA_DIR, then a fixed /data folder; if /data is not writable
+    (e.g. local dev without root), falls back to ./instance."""
+    for d in (os.environ.get("RAILWAY_VOLUME_MOUNT_PATH"),
+              os.environ.get("DATA_DIR"),
+              "/data"):
+        if not d:
+            continue
+        try:
+            os.makedirs(d, exist_ok=True)
+            if os.access(d, os.W_OK):
+                return d
+        except OSError:
+            continue
+    d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "instance")
     os.makedirs(d, exist_ok=True)
     return d
 
@@ -67,30 +78,9 @@ def admin_required(f):
     return decorated
 
 
-# Darwin Core export fields (+ supergroup / higherClassification additions)
-DWC_FIELDS = [
-    ("taxon_id",                  "http://rs.tdwg.org/dwc/terms/taxonID"),
-    ("supergroup",                "http://rs.tdwg.org/dwc/terms/kingdom"),
-    ("higher_classification",     "http://rs.tdwg.org/dwc/terms/higherClassification"),
-    ("phylum",                    "http://rs.tdwg.org/dwc/terms/phylum"),
-    ("class_",                    "http://rs.tdwg.org/dwc/terms/class"),
-    ("order",                     "http://rs.tdwg.org/dwc/terms/order"),
-    ("family",                    "http://rs.tdwg.org/dwc/terms/family"),
-    ("genus",                     "http://rs.tdwg.org/dwc/terms/genus"),
-    ("specific_epithet",          "http://rs.tdwg.org/dwc/terms/specificEpithet"),
-    ("infraspecific_epithet",     "http://rs.tdwg.org/dwc/terms/infraspecificEpithet"),
-    ("scientific_name",           "http://rs.tdwg.org/dwc/terms/scientificName"),
-    ("scientific_name_authorship","http://rs.tdwg.org/dwc/terms/scientificNameAuthorship"),
-    ("taxon_rank",                "http://rs.tdwg.org/dwc/terms/taxonRank"),
-    ("taxonomic_status",          "http://rs.tdwg.org/dwc/terms/taxonomicStatus"),
-    ("vernacular_name",           "http://rs.tdwg.org/dwc/terms/vernacularName"),
-    ("habitat",                   "http://rs.tdwg.org/dwc/terms/habitat"),
-    ("occurrence_remarks",        "http://rs.tdwg.org/dwc/terms/occurrenceRemarks"),
-    ("dataset_name",              "http://rs.tdwg.org/dwc/terms/datasetName"),
-    ("references",                "http://purl.org/dc/terms/references"),
-]
-
-CSV_COLUMNS = [(attr, attr) for attr, _ in DWC_FIELDS]
+# Darwin Core export fields — single source of truth in dwc_terms.py
+DWC_FIELDS = dwc_terms.EXPORT_FIELDS
+CSV_COLUMNS = [(attr, csv) for csv, attr, _ in dwc_terms.TERMS]
 
 
 def _csv_response(taxa, filename):
@@ -189,7 +179,8 @@ def _register_routes(app):
         t = db.get_or_404(Taxon, taxon_id)
         node = ph.get_node(t.clade_id) if t.clade_id else None
         path = ph.get_path(t.clade_id) if node else []
-        return render_template("taxon.html", t=t, node=node, path=path)
+        return render_template("taxon.html", t=t, node=node, path=path,
+                               terms=dwc_terms.TERMS)
 
     @app.route("/download")
     def download():
@@ -255,14 +246,7 @@ def _register_routes(app):
         total = Taxon.query.count()
         return render_template("workspace/dashboard.html", recent_logs=recent, total_taxa=total)
 
-    EDITABLE = [
-        "supergroup", "clade_id", "higher_classification",
-        "phylum", "class_", "order", "family", "genus",
-        "specific_epithet", "infraspecific_epithet", "scientific_name",
-        "scientific_name_authorship", "taxon_rank", "taxonomic_status",
-        "accepted_name_usage", "vernacular_name", "habitat",
-        "occurrence_remarks", "dataset_name", "references",
-    ]
+    EDITABLE = [a for a in dict.fromkeys(dwc_terms.TEXT_ATTRS) if a != "taxon_id"]
 
     @app.route("/workspace/taxon/<int:taxon_id>/edit", methods=["GET", "POST"])
     @login_required
@@ -419,9 +403,9 @@ def _register_routes(app):
             "family": t.family, "genus": t.genus,
         }
         if full:
-            d.update({"habitat": t.habitat, "occurrenceRemarks": t.occurrence_remarks,
-                      "references": t.references, "datasetName": t.dataset_name,
-                      "extra": t.extra})
+            for csv, attr, _ in dwc_terms.TERMS:
+                d.setdefault(csv, getattr(t, attr))
+            d["extra"] = t.extra
         return {k: v for k, v in d.items() if v is not None}
 
     @app.route("/api")

@@ -19,21 +19,19 @@
   <div class="card" style="margin-top:1rem">
     <table>
       <tbody>
-        {% macro row(k, v) %}{% if v %}<tr><th style="width:240px">{{ k }}</th><td>{{ v }}</td></tr>{% endif %}{% endmacro %}
-        {{ row('taxonID', t.taxon_id) }}
-        {{ row('Supergrupo', t.supergroup) }}
-        {{ row('higherClassification', t.higher_classification) }}
-        {{ row('Filo', t.phylum) }}
-        {{ row('Classe', t.class_) }}
-        {{ row('Ordem', t.order) }}
-        {{ row('Família', t.family) }}
-        {% if t.genus %}<tr><th style="width:240px">Gênero</th><td><a href="{{ url_for('search', genus=t.genus) }}"><em class="sci">{{ t.genus }}</em></a> — ver espécies</td></tr>{% endif %}
-        {{ row('Categoria', t.taxon_rank) }}
-        {{ row('Status', t.taxonomic_status) }}
-        {{ row('Habitat', t.habitat) }}
-        {{ row('Observações', t.occurrence_remarks) }}
-        {{ row('Dataset', t.dataset_name) }}
-        {{ row('Referências', t.references) }}
+        {% for csv, attr, uri in terms %}
+          {% set v = getattr(t, attr) %}
+          {% if v %}
+            <tr>
+              <th style="width:240px">{{ csv }}</th>
+              <td>
+                {% if attr == 'genus' %}<a href="{{ url_for('search', genus=v) }}"><em class="sci">{{ v }}</em></a> — ver espécies
+                {% elif attr == 'references' or (v is string and v.startswith('http')) %}<a href="{{ v }}" target="_blank" rel="noopener">{{ v }}</a>
+                {% else %}{{ v }}{% endif %}
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
       </tbody>
     </table>
   </div>

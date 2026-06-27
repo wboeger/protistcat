@@ -19,7 +19,10 @@
       {% for f in fields %}
         <div class="form-group">
           <label for="{{ f }}">{{ labels.get(f, f) }}</label>
-          {% if f in ('occurrence_remarks','references','higher_classification') %}
+          {% if f in ('occurrence_remarks','internal_remarks','references','higher_classification',
+                      'bibliographic_citation','bibliographic_reference','controlled_bibliography','voucher',
+                      'animal_host_names','vegetal_host_names','animal_symbiont_names',
+                      'animal_host_ids','animal_symbiont_ids','life_form') %}
             <textarea id="{{ f }}" name="{{ f }}">{{ getattr(t, f) or '' }}</textarea>
           {% else %}
             <input type="text" id="{{ f }}" name="{{ f }}" value="{{ getattr(t, f) or '' }}">

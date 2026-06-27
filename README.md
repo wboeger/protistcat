@@ -23,10 +23,22 @@ que os principais grupos de protistas estejam representados.
 
 ## Campos / Darwin Core
 
-Mantém os campos DwC do FaunnadoBrasil e acrescenta o rank **supergrupo**
-(protistas não cabem em "kingdom") e `higherClassification` (caminho completo na
-árvore). No export DwC-A o supergrupo é mapeado para o termo `dwc:kingdom` por
-compatibilidade.
+Conjunto completo de campos do CTFB (`mv_planilha_extendida.csv`) — escada de
+ranks completa (super/sub/infra-classe, ordem, família, tribo, subgênero…),
+status nomenclatural, distribuição (country, countryCode, endemicBrazil,
+domínios marinho/epicontinental, environment, lifeForm), vernáculos, hospedeiros
+e simbiontes, voucher, bibliografia e curadoria. Tudo definido em um único
+lugar: `dwc_terms.py` (`TERMS`), compartilhado por modelo, ingestão e export.
+
+Acrescenta o rank **supergrupo** (protistas não cabem em "kingdom", mapeado para
+`dwc:kingdom` no export) e `clade` (nó da filogenia). Termos não-padrão usam o
+namespace do projeto no meta.xml do DwC-A.
+
+## Onde ficam os dados
+
+SQLite único. `app.data_dir()` resolve, em ordem: `RAILWAY_VOLUME_MOUNT_PATH` →
+`DATA_DIR` → **`/data`** → (se nenhum gravável) `./instance`. Em produção o banco
+fica em **`/data/protista.db`** (volume persistente).
 
 ## Rodar
 

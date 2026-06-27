@@ -11,34 +11,12 @@ import xml.etree.ElementTree as ET
 
 import requests
 
+import dwc_terms
+
 BATCH_SIZE = 500
 
-# DwC term (last path segment) → model attribute
-FIELD_MAP = {
-    "id": "taxon_id",
-    "taxonID": "taxon_id",
-    "kingdom": "supergroup",          # supergroup carried in dwc:kingdom
-    "supergroup": "supergroup",
-    "higherClassification": "higher_classification",
-    "phylum": "phylum",
-    "class": "class_",
-    "order": "order",
-    "family": "family",
-    "genus": "genus",
-    "specificEpithet": "specific_epithet",
-    "infraspecificEpithet": "infraspecific_epithet",
-    "scientificName": "scientific_name",
-    "scientificNameAuthorship": "scientific_name_authorship",
-    "taxonRank": "taxon_rank",
-    "taxonomicStatus": "taxonomic_status",
-    "acceptedNameUsage": "accepted_name_usage",
-    "acceptedNameUsageID": "accepted_name_usage_id",
-    "vernacularName": "vernacular_name",
-    "habitat": "habitat",
-    "occurrenceRemarks": "occurrence_remarks",
-    "datasetName": "dataset_name",
-    "references": "references",
-}
+# DwC term / CSV header → model attribute (full CTFB extended set)
+FIELD_MAP = dict(dwc_terms.HEADER_TO_ATTR)
 
 PT_LABELS = {
     "id": "taxon_id", "taxonid": "taxon_id",
@@ -62,14 +40,7 @@ PT_LABELS = {
     "dataset": "dataset_name", "referências": "references", "referencias": "references",
 }
 
-UPDATABLE_ATTRS = [
-    "supergroup", "clade_id", "higher_classification",
-    "phylum", "class_", "order", "family", "genus",
-    "specific_epithet", "infraspecific_epithet", "scientific_name",
-    "scientific_name_authorship", "taxon_rank", "taxonomic_status",
-    "accepted_name_usage", "accepted_name_usage_id", "vernacular_name",
-    "habitat", "occurrence_remarks", "dataset_name", "references", "extra",
-]
+UPDATABLE_ATTRS = [a for a in dict.fromkeys(dwc_terms.TEXT_ATTRS) if a != "taxon_id"] + ["extra"]
 
 
 # ── DwC-A parsing ───────────────────────────────────────────────────────────

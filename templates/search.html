@@ -27,17 +27,18 @@
 
   <div class="card" style="padding:0;overflow-x:auto">
     <table>
-      <thead><tr><th>Nome científico</th><th>Supergrupo</th><th>Classificação</th><th>Status</th></tr></thead>
+      <thead><tr><th>Nome científico</th><th>Gênero</th><th>Supergrupo</th><th>Classificação</th><th>Status</th></tr></thead>
       <tbody>
         {% for t in taxa %}
           <tr>
             <td><a href="{{ url_for('taxon', taxon_id=t.id) }}"><em class="sci">{{ t.scientific_name }}</em></a></td>
+            <td>{% if t.genus %}<a href="{{ url_for('search', genus=t.genus) }}"><em class="sci">{{ t.genus }}</em></a>{% else %}—{% endif %}</td>
             <td>{{ t.supergroup or '—' }}</td>
             <td style="font-size:.8rem;color:var(--muted)">{{ t.higher_classification or '—' }}</td>
             <td>{{ t.taxonomic_status or '—' }}</td>
           </tr>
         {% else %}
-          <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1.5rem">Nenhum registro.</td></tr>
+          <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Nenhum registro.</td></tr>
         {% endfor %}
       </tbody>
     </table>

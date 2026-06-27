@@ -27,7 +27,7 @@
         {{ row('Classe', t.class_) }}
         {{ row('Ordem', t.order) }}
         {{ row('Família', t.family) }}
-        {{ row('Gênero', t.genus) }}
+        {% if t.genus %}<tr><th style="width:240px">Gênero</th><td><a href="{{ url_for('search', genus=t.genus) }}"><em class="sci">{{ t.genus }}</em></a> — ver espécies</td></tr>{% endif %}
         {{ row('Categoria', t.taxon_rank) }}
         {{ row('Status', t.taxonomic_status) }}
         {{ row('Habitat', t.habitat) }}

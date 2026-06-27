@@ -43,8 +43,12 @@
     <a class="btn btn-primary" href="{{ url_for('search', clade=node.id) }}">
       Ver táxons de {{ node.name }} →</a>
     {% if node.genera %}
-      <p class="lead" style="margin-top:.8rem">Gêneros representativos:
-        {% for g in node.genera %}<em class="sci">{{ g }}</em>{% if not loop.last %}, {% endif %}{% endfor %}.</p>
+      <h2>Gêneros — clique para ver as espécies</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+        {% for g in node.genera %}
+          <a class="btn btn-outline btn-sm" href="{{ url_for('search', genus=g) }}"><em class="sci">{{ g }}</em></a>
+        {% endfor %}
+      </div>
     {% endif %}
   {% endif %}
 
